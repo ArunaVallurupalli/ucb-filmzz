@@ -5,26 +5,33 @@
 (defn tweetwordcount [options]
    [
     ;; spout configuration
-    {"tweet-spout" (python-spout-spec
+    {"running-movie-spout" (python-spout-spec
           options
-          "spouts.tweets.Tweets"
-          ["tweet"]
+          "spouts.runningmovies.Tweets"
+          ["tweet","latitude","longitude","country","region"]
+          :p 1
+          )
+     "upcoming-movie-spout" (python-spout-spec
+          options
+          "spouts.upcomingmovies.Tweets"
+          ["tweet","latitude","longitude","country","region"]
           :p 1
           )
     }
     ;; bolt configuration
     {"parse-tweet-bolt" (python-bolt-spec
           options
-          {"tweet-spout" :shuffle}
+          {"running-movie-spout" :shuffle,
+           "upcoming-movie-spout" :shuffle}
           "bolts.parse.ParseTweet"
-          ["word"]
+          ["id","title","tweet"]
           :p 2
           )
-     "count-bolt" (python-bolt-spec
+     "statistic-bolt" (python-bolt-spec
           options
-          {"parse-tweet-bolt" ["word"]}
-          "bolts.wordcount.WordCounter"
-          ["word" "count"]
+          {"parse-tweet-bolt" ["id"]}
+          "bolts.tweetstatistic.TweetStatistic"
+          ["title" "count"]
           :p 2
           )
     }
